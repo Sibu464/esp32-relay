@@ -1,0 +1,14 @@
+# Secrets — never commit
+secrets.h
+esp32-relay/secrets.h
+
+# Build artifacts
+build/
+*.bin
+*.elf
+*.map
+
+# Editor / OS cruft
+.DS_Store
+.vscode/
+*.swp
