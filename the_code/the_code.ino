@@ -16,7 +16,7 @@ const char* OTA_URL =
   "https://github.com/Sibu464/esp32-relay/releases/latest/download/firmware.bin";
 
 // Bump this before each release tag so logs are honest
-const char* FW_VERSION = "1.0.1";
+const char* FW_VERSION = "1.0.3";
 
 const int OUTPUT_PIN = 27;
 const unsigned long PULSE_DURATION_MS = 1000;
