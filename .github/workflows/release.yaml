@@ -36,7 +36,7 @@ jobs:
           MQTT_USER:     ${{ secrets.MQTT_USER }}
           MQTT_PASS:     ${{ secrets.MQTT_PASS }}
         run: |
-          cat > esp32-relay/secrets.h <<EOF
+          cat > the_code/secrets.h <<EOF
           #pragma once
           #define WIFI_SSID     "${WIFI_SSID}"
           #define WIFI_PASSWORD "${WIFI_PASSWORD}"
@@ -50,7 +50,7 @@ jobs:
           arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
             --output-dir build \
-            esp32-relay
+            the_code
           cp build/*.ino.bin firmware.bin
 
       - name: Create release
