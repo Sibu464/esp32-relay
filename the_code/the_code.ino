@@ -6,18 +6,17 @@
 
 #include "secrets.h"
 
-// ============ NON-SECRET CONFIGURATION ============
 const char* MQTT_CLIENT_ID = "ESP32_Client_01";
 const char* MQTT_TOPIC     = "home/lights/bedroom";
 const char* OTA_TOPIC      = "home/lights/bedroom/ota";
 const int   MQTT_PORT      = 1883;   // 8883 once you enable TLS
 
-// GitHub Releases OTA URL — change YOUR_USERNAME to your actual username
+
 const char* OTA_URL =
-  "https://github.com/YOUR_USERNAME/esp32-relay/releases/latest/download/firmware.bin";
+  "https://github.com/Sibu464/esp32-relay/releases/latest/download/firmware.bin";
 
 // Bump this before each release tag so logs are honest
-const char* FW_VERSION = "1.0.0";
+const char* FW_VERSION = "1.0.1";
 
 const int OUTPUT_PIN = 27;
 const unsigned long PULSE_DURATION_MS = 1000;
