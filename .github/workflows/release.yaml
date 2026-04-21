@@ -26,7 +26,7 @@ jobs:
           arduino-cli core install esp32:esp32
 
       - name: Install libraries
-        run: arduino-cli lib install "PubSubClient@2.8"
+        run: arduino-cli lib install "PubSubClient"
 
       - name: Generate secrets.h from repository secrets
         env:
@@ -49,7 +49,6 @@ jobs:
         run: |
           arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
-            --libraries /home/runner/Arduino/libraries \
             --output-dir build \
             the_code
           cp build/*.ino.bin firmware.bin

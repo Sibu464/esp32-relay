@@ -22,7 +22,7 @@ const int OUTPUT_PIN = 26;
 const unsigned long PULSE_DURATION_MS = 1000;
 
 // ============ GLOBALS ============
-WiFiClient    espClient
+WiFiClient    espClient;
 PubSubClient  client(espClient);
 
 bool pulseActive = false;
