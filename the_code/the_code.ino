@@ -64,14 +64,14 @@ void setup_wifi() {
 void runHttpOta() {
   Serial.printf("HTTP OTA: checking %s (current v%s)\n", OTA_URL, FW_VERSION);
 
-  // GitHub uses TLS; setInsecure skips cert verification.
-  // For strict TLS, pin the ISRG Root X1 cert and use setCACert() instead.
   WiFiClientSecure otaClient;
   otaClient.setInsecure();
 
-  client.disconnect();                    // free the MQTT socket while downloading
+  client.disconnect();
 
   httpUpdate.setLedPin(OUTPUT_PIN, HIGH);
+  httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);  
+
   t_httpUpdate_return ret = httpUpdate.update(otaClient, OTA_URL, FW_VERSION);
 
   switch (ret) {
@@ -85,10 +85,9 @@ void runHttpOta() {
       break;
     case HTTP_UPDATE_OK:
       Serial.println("OTA: success, rebooting");
-      break;  // device reboots automatically
+      break;
   }
 }
-
 // ============ MQTT ============
 void callback(char* topic, byte* payload, unsigned int length) {
   String message;
