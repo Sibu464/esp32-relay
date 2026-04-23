@@ -16,7 +16,7 @@ const char* OTA_URL =
   "https://github.com/Sibu464/esp32-relay/releases/latest/download/firmware.bin";
 
 // Bump this before each release tag so logs are honest
-const char* FW_VERSION = "1.0.4";
+const char* FW_VERSION = "1.0.5";
 
 const int OUTPUT_PIN = 26;
 const unsigned long PULSE_DURATION_MS = 1000;
@@ -103,7 +103,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   // Pulse control topic
-  if (message == "ON" || message == "1" || message == "trigger") {
+  if (message == "ON" || message == "trigger") {
     triggerPulse("MQTT");
   }
 }
