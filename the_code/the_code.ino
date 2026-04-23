@@ -16,9 +16,10 @@ const char* OTA_URL =
   "https://github.com/Sibu464/esp32-relay/releases/latest/download/firmware.bin";
 
 // Bump this before each release tag so logs are honest
-const char* FW_VERSION = "1.0.5";
+const char* FW_VERSION = "1.0.7";
 
 const int OUTPUT_PIN = 26;
+const int buzzer=27;
 const unsigned long PULSE_DURATION_MS = 1000;
 
 // ============ GLOBALS ============
@@ -60,7 +61,7 @@ void setup_wifi() {
   Serial.printf("\nWiFi connected. IP: %s\n", WiFi.localIP().toString().c_str());
 }
 
-// ============ OTA (HTTP pull from GitHub Releases) ============
+//OTA (HTTP pull from GitHub Releases)
 void runHttpOta() {
   Serial.printf("HTTP OTA: checking %s (current v%s)\n", OTA_URL, FW_VERSION);
 
@@ -69,7 +70,7 @@ void runHttpOta() {
 
   client.disconnect();
 
-  httpUpdate.setLedPin(OUTPUT_PIN, HIGH);
+  httpUpdate.setLedPin(buzzer, HIGH);
   httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);  
 
   t_httpUpdate_return ret = httpUpdate.update(otaClient, OTA_URL, FW_VERSION);
@@ -137,6 +138,7 @@ void setup() {
   Serial.printf("\nesp32-relay v%s\n", FW_VERSION);
 
   pinMode(OUTPUT_PIN, OUTPUT);
+  pinMode(buzzer,OUTPUT);
   digitalWrite(OUTPUT_PIN, LOW);
 
   setup_wifi();
