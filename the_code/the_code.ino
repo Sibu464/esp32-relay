@@ -9,22 +9,20 @@
 const char* MQTT_CLIENT_ID = "ESP32_Client_01";
 const char* MQTT_TOPIC     = "home/lights/bedroom";
 const char* OTA_TOPIC      = "home/lights/bedroom/ota";
-const int   MQTT_PORT      = 1883;   // 8883 once you enable TLS
-
+const int   MQTT_PORT      = 1883;
 
 const char* OTA_URL =
   "https://github.com/Sibu464/esp32-relay/releases/latest/download/firmware.bin";
 
-// Bump this before each release tag so logs are honest
-const char* FW_VERSION = "1.0.7";
+const char* FW_VERSION = "1.0.8";
 
 const int OUTPUT_PIN = 26;
-const int buzzer=27;
+const int buzzer = 27;
 const unsigned long PULSE_DURATION_MS = 1000;
 
 // ============ GLOBALS ============
-WiFiClient    espClient;
-PubSubClient  client(espClient);
+WiFiClient   espClient;
+PubSubClient client(espClient);
 
 bool pulseActive = false;
 unsigned long pulseStartTime = 0;
@@ -61,7 +59,30 @@ void setup_wifi() {
   Serial.printf("\nWiFi connected. IP: %s\n", WiFi.localIP().toString().c_str());
 }
 
-//OTA (HTTP pull from GitHub Releases)
+bool reconnect_wifi() {
+  if (WiFi.status() == WL_CONNECTED) return true;
+
+  Serial.println("WiFi lost, reconnecting...");
+  WiFi.disconnect();
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  // Wait up to 10 seconds for WiFi to come back
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 10000) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("\nWiFi reconnected. IP: %s\n", WiFi.localIP().toString().c_str());
+    return true;
+  }
+
+  Serial.println("\nWiFi reconnect failed, will retry");
+  return false;
+}
+
+// ============ OTA ============
 void runHttpOta() {
   Serial.printf("HTTP OTA: checking %s (current v%s)\n", OTA_URL, FW_VERSION);
 
@@ -71,7 +92,7 @@ void runHttpOta() {
   client.disconnect();
 
   httpUpdate.setLedPin(buzzer, HIGH);
-  httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);  
+  httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
 
   t_httpUpdate_return ret = httpUpdate.update(otaClient, OTA_URL, FW_VERSION);
 
@@ -89,6 +110,7 @@ void runHttpOta() {
       break;
   }
 }
+
 // ============ MQTT ============
 void callback(char* topic, byte* payload, unsigned int length) {
   String message;
@@ -97,38 +119,35 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   message.trim();
 
-  // OTA control topic
   if (String(topic) == OTA_TOPIC) {
     if (message.equalsIgnoreCase("UPDATE")) runHttpOta();
     return;
   }
 
-  // Pulse control topic
   if (message == "ON" || message == "trigger") {
     triggerPulse("MQTT");
   }
 }
 
-void reconnect() {
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+void reconnect_mqtt() {
+  if (client.connected()) return;
 
-    bool connected;
-    if (strlen(MQTT_USER) > 0) {
-      connected = client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
-    } else {
-      connected = client.connect(MQTT_CLIENT_ID);
-    }
+  Serial.print("Attempting MQTT connection...");
 
-    if (connected) {
-      Serial.println("connected");
-      client.subscribe(MQTT_TOPIC);
-      client.subscribe(OTA_TOPIC);
-      Serial.printf("Subscribed to %s and %s\n", MQTT_TOPIC, OTA_TOPIC);
-    } else {
-      Serial.printf("failed, rc=%d  retrying in 5s\n", client.state());
-      delay(5000);
-    }
+  bool connected;
+  if (strlen(MQTT_USER) > 0) {
+    connected = client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
+  } else {
+    connected = client.connect(MQTT_CLIENT_ID);
+  }
+
+  if (connected) {
+    Serial.println("connected");
+    client.subscribe(MQTT_TOPIC);
+    client.subscribe(OTA_TOPIC);
+    Serial.printf("Subscribed to %s and %s\n", MQTT_TOPIC, OTA_TOPIC);
+  } else {
+    Serial.printf("failed, rc=%d\n", client.state());
   }
 }
 
@@ -138,7 +157,7 @@ void setup() {
   Serial.printf("\nesp32-relay v%s\n", FW_VERSION);
 
   pinMode(OUTPUT_PIN, OUTPUT);
-  pinMode(buzzer,OUTPUT);
+  pinMode(buzzer, OUTPUT);
   digitalWrite(OUTPUT_PIN, LOW);
 
   setup_wifi();
@@ -148,14 +167,16 @@ void setup() {
 }
 
 void loop() {
-  if (WiFi.status() != WL_CONNECTED) {
-    WiFi.reconnect();
-    delay(1000);
+  // Step 1 — make sure WiFi is up first
+  if (!reconnect_wifi()) {
+    delay(5000);   // WiFi not back yet, wait and try again next loop
     return;
   }
 
-  if (!client.connected()) reconnect();
+  // Step 2 — WiFi is up, now handle MQTT
+  reconnect_mqtt();
   client.loop();
 
+  // Step 3 — handle pulse timer
   handlePulse();
 }
