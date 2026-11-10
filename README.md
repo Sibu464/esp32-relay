@@ -1,5 +1,5 @@
 # esp32-relay
-runs my shit
+runs my stuff, I use this to open my gate, I have a mosquitto broker running on an Ec2 instance in cpt for low latency
 # esp32-relay
 
 ESP32 firmware that connects to WiFi, subscribes to an MQTT broker, and
